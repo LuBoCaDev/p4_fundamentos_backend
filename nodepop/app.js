@@ -1,43 +1,71 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import connectMongoose from './config/connectMongoose.js';
+import * as loginController from './controllers/loginController.js';
+import * as productsController from './controllers/productsController.js';
 
-var mongoose = require('./config/connectMongoose');
+import * as sessionManager from './bin/sessionManager.js';
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+await connectMongoose();
+console.log('Conectado a MongoDB.');
 
-var app = express();
+import indexRouter from './routes/index.js';
+import usersRouter from './routes/users.js';
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
+const app = express();
+
+// Configuración de la vista
+app.set('views', path.join(path.resolve(), 'views'));
 app.set('view engine', 'ejs');
 
+// Middlewares
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(path.resolve(), 'public')));
 
-app.use('/', indexRouter);
+// Middlewares de sesión
+app.use(sessionManager.middleware, sessionManager.useSessionInViews);
+
+// Rutas públicas
+app.get('/', indexRouter.index);
+app.get('/login', loginController.index);
+app.post('/login', loginController.postLogin);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
+// Rutas privadas (agregar lógica de autenticación si es necesario)
+app.get('/product/new', sessionManager.isLoggedIn, productsController.index)
+app.get('/product/new', sessionManager.isLoggedIn, productsController.postNew)
+
+app.all('/logout', loginController.logout);
+
+// Catch 404 y manejador de errores
+app.use((req, res, next) => {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// Manejo de errores
+app.use((err, req, res, next) => {
+  // Errores de validación
+  if (err.array) {
+    err.message = 'Invalid request: ' + err.array()
+      .map(e => `${e.location} ${e.type} ${e.path} ${e.msg}`)
+      .join(', ');
+    err.status = 422;
+  }
 
-  // render the error page
   res.status(err.status || 500);
+
+  // Set locals para mostrar el error solo en desarrollo
+  res.locals.message = err.message;
+  res.locals.error = process.env.NODEAPP_ENV === 'development' ? err : {};
+
+  // Renderizar la vista de error
   res.render('error');
 });
 
-module.exports = app;
+export default app;

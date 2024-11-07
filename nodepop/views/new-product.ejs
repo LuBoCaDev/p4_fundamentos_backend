@@ -1,0 +1,39 @@
+<%- include('header.ejs') %>
+
+<div class="container">
+    <h1>Nuevo Producto</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label for="productName" class="form-label">Nombre del Producto</label>
+            <input type="text" name="name" class="form-control" id="productName" required>
+        </div>
+
+        <input type="hidden" name="owner" value="<%= user._id %>">
+
+        <div class="mb-3">
+            <label for="productPrice" class="form-label">Precio</label>
+            <input type="number" name="price" class="form-control" id="productPrice" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="productImage" class="form-label">Foto del Producto</label>
+            <input type="file" name="image" class="form-control" id="productImage" accept="image/*" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="productTags" class="form-label">Tags</label>
+            <select name="tags" class="form-control" id="productTags" multiple>
+                <option value="work">Work</option>
+                <option value="lifestyle">Lifestyle</option>
+                <option value="motor">Motor</option>
+                <option value="mobile">Mobile</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Publicar Producto</button>
+    </form>
+</div>
+
+<%- include('footer.ejs') %>

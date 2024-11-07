@@ -1,15 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const Product = require('../models/Product');
+import express from 'express';
+import Product from '../models/Product.js';
 
-// MOSTRAR PRODUCTOs (GET /)
+const router = express.Router();
+
+// MOSTRAR PRODUCTOS (GET /)
 router.get('/', async (req, res) => {
     const { tag, name, price, skip = 0, limit = 10, sort = 'name' } = req.query;
 
-    const filter = {};  //filtros
-    if (tag) filter.tags = tag; // tag
-    if (name) filter.name = new RegExp('^' + name, 'i'); // nombre
-    if (price) { // precios
+    const filter = {};
+    if (tag) filter.tags = tag;
+    if (name) filter.name = new RegExp('^' + name, 'i');
+    if (price) {
         const [min, max] = price.split('-');
         if (min) filter.price = { ...filter.price, $gte: min };
         if (max) filter.price = { ...filter.price, $lte: max };
@@ -26,5 +27,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-
-module.exports = router;
+export default router;

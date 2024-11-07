@@ -1,10 +1,9 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
-mongoose.connect('mongodb://localhost:27017/nodepop', {
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true
+mongoose.connection.on( 'error', err => {
+    console.log('Error de conexión', err)
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('Error connecting to MongoDB:', err));
 
-module.exports = mongoose;
+export default function connectMoongose() {
+    return mongoose.connect('mongodb://127.0.0.1:27017/nodepop')
+}

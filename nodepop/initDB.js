@@ -1,42 +1,67 @@
-const mongoose = require('./config/connectMongoose');
-const Product = require('./models/Product');
-const User = require('./models/User');    // PENDIENTE
+import readline from 'node:readline';
+import mongoose from './config/connectMongoose.js';
+import Product from './models/Product.js';
+import User from './models/User.js';
 
-const initialUsers = [
-    { username: 'usuario1', password: 'password1' },
-    { username: 'usuario2', password: 'password2' }
-];
+const ask = (questionText) => {
+    return new Promise((resolve, reject) => {
+        const consoleInterface = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+        });
+        consoleInterface.question(questionText, answer => {
+        consoleInterface.close();
+        resolve(answer);
+        });
+    });
+};
 
-const initialProducts = [
-    { name: 'Producto 1', owner: null, price: 10, image: 'url1', tags: ['work'] },
-    { name: 'Producto 2', owner: null, price: 20, image: 'url2', tags: ['lifestyle'] },
-    { name: 'Producto 3', owner: null, price: 30, image: 'url3', tags: ['motor'] },
-];
+
+const initUsers = async () => {
+    
+    const deleteResult = await User.deleteMany();
+    console.log(`Deleted ${deleteResult.deletedCount} users.`);
+
+    const insertResult = await User.insertMany([
+        { email: 'user1@example.com', password: await User.hashPassword('password1') },
+        { email: 'user2@example.com', password: await User.hashPassword('password2') },
+    ]);
+    console.log(`Created ${insertResult.length} users.`);
+};
+
+const initProducts = async () => {
+    const users = await User.find({});
+
+    const initialProducts = [
+        { name: 'Producto 1', owner: users[0]._id, price: 10, image: '', tags: ['work'] },
+        { name: 'Producto 2', owner: users[0]._id, price: 20, image: '', tags: ['lifestyle'] },
+        { name: 'Producto 3', owner: users[0]._id, price: 30, image: '', tags: ['motor'] },
+    ];
+
+    const deleteResult = await Product.deleteMany();
+    console.log(`Deleted ${deleteResult.deletedCount} products.`);
+
+    const insertResult = await Product.insertMany(initialProducts);
+    console.log(`Created ${insertResult.length} products.`);
+};
+
 
 const initDB = async () => {
-    try {
-        // Aquí borro lois usuarios y productos existentes. AQUÍ ESTÁN LOS deleteManys!!!
-        await User.deleteMany({});
-        await Product.deleteMany({});
 
-        // Aquí puedo insertar usuarios. AQUÍ ESTÁN LOS insertManys!!
-        const users = await User.insertMany(initialUsers);
-        console.log('Usuarios iniciales creados:', users);
+    const connection = await mongoose.connect();
+    console.log('Connected to MongoDB:', connection.connection.name);
 
-        // Aqui asigno los propietarios a los productos (por ejemplo, el primer usuario)
-        initialProducts.forEach(product => {
-            product.owner = users[0]._id; // Asignar el primer usuario como propietario
-        });
-
-        // Aquí insertamos productos. AQUÍ ESTÁN LOS insertManys!!
-        const products = await Product.insertMany(initialProducts);
-        console.log('Productos iniciales creados:', products);
-
-        // Y aquí cerrar la conexión a la base de datos
-        mongoose.connection.close();
-    } catch (error) {
-        console.error('Error al inicializar la base de datos:', error);
+    const questionResponse = await ask('Are you sure you want to empty the database and create initial data?');
+    if (questionResponse.toLowerCase() !== 'yes') {
+        console.log('Operation aborted.');
+        process.exit();
     }
+
+
+    await initUsers();
+    await initProducts();
+
+    connection.connection.close();
 };
 
 initDB();
