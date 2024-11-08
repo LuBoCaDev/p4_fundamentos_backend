@@ -1,31 +1,32 @@
 <%- include('header.ejs') %>
+
 <div class="container">
-    <p>User ID: <%= user ? user._id : 'No user logged in' %></p>
 
-    <% // contenido para usuarios NO logados %>
-    <% if (!user) { %>
-        <h1>Welcome to Nodepop!</h1>
-        <p>Please <a href="/login">login</a> to start shopping!</p>
-    <% } %>
+  <p>User ID: <%= session.userId %></p>
 
-    <% // contenido para usuarios logados %>
-    <% if (user) { %>
-        <h2>Ingresar productos usuario </h2>
-        <% products.forEach(product => { %>
-        <p>
-            <h4>producto:  <%= product.name %> <a href="/products/delete/<%= product.id %>"><i class="bi bi-trash"></i></a></h4><br>
-            <h5>precio: <%= product.price %></h5> <br>
-            <img src="/imagen-product/<%= product.image %>" alt="Imagen de <%= product.name %>" style="width: 200px; height: auto;"><br>
-            <h5>etiquetas:
-            <% if (product.tags && product.tags.length > 0) { %>
-            <% product.tags.forEach(tag => { %>
-                <span><%= tag %></span>
-            <% }) %>
-            <% } else { %>
-            Sin etiquetas
-            <% } %></h5>
-        </p>
-        <% }) %>
-    <% } %>
+  <p>Ejemplo de inyección de código <%= nombre %></p>
+
+  <h2>Condicionales</h2>
+  <p>El segundo actual es: <%= segundoActual %></p>
+  <% if (esPar) { %>
+    <p>El segundo actual es par.</p>
+  <% } else { %>
+    <p>El segundo actual es impar.</p>
+  <% } %>
+
+  <% // contenido para usuarios NO logados %>
+  <% if (!session.userId) { %>
+    <p>Para ver el contenido debes hacer <a href="/login">login</a></p>
+  <% } %>
+
+  <% // contenido para usuarios logados %>
+  <% if (session.userId) { %>
+    <h2>Bucles</h2>
+    <% products.forEach(product => { %>
+      <p><%= product.name %> tiene <%= product.age %> años.  <a href="/products/delete/<%= product.id %>"><i class="bi bi-trash"></i></a></p>
+    <% }) %>
+  <% } %>
+
 </div>
+
 <%- include('footer.ejs') %>

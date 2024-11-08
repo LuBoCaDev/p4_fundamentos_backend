@@ -1,78 +1,77 @@
-import createError from 'http-errors';
-import Product from '../models/Product.js';
+import createError from 'http-errors'
+import Product from '../models/Product.js'
 
-// Renderiza la vista para crear un nuevo producto
 export function index(req, res, next) {
-  res.render('new-product'); // Renderiza la vista 'new-product' que contiene el formulario
+  res.render('new-product')
 }
 
-// Obtiene todos los productos
-export async function getAllProducts(req, res, next) {
-    try {
-        const products = await Product.find();
-        res.json(products);
-    } catch (error) {
-        next(createError(500, 'Error al obtener los productos'));
-    }
-}
-
-// Crea un nuevo producto
 export async function postNew(req, res, next) {
-    const { name, price, image, tags } = req.body;
+  try {
+    const userId = req.session.userId
+    const { name, age } = req.body
+
+
     const product = new Product({
-        name,
-        owner: req.user._id, // Asegúrate de tener acceso al usuario desde req.user
-        price,
-        image,
-        tags
-    });
+      name,
+      owner: userId,
+      price,
+      image,
+      tags
+    })
 
-    try {
-        await product.save();
-        res.status(201).json(product); // Responde con el producto creado
-    } catch (error) {
-        next(createError(400, 'Error al crear el producto'));
-    }
+    await product.save()
+
+    res.redirect('/')
+  } catch (err) {
+    next(err)
+  }
 }
 
-// Elimina un producto
 export async function deleteProduct(req, res, next) {
-    const product = await Product.findById(req.params.id);
-    
-    if (!product) {
-        return next(createError(404, 'Producto no encontrado'));
-    }
+  const userId = req.session.userId
+  const productId = req.params.productId
 
-    if (product.owner.toString() !== req.user._id.toString()) {
-        return next(createError(403, 'No tienes permiso para eliminar este producto'));
-    }
 
-    await product.remove();
-    res.status(204).end(); // Responde con un 204 (sin contenido) tras la eliminación
+  const product = await Product.findOne({ _id: productId })
+
+  if (!product) {
+    console.warn(`WARNING - el usuario ${userId} está intentando eliminar un producto inexistente`)
+    return next(createError(404, 'Not found'))
+  }
+
+  if (product.owner.toString() !== userId) {
+    console.warn(`WARNING - el usuario ${userId} está intentando eliminar un producto de otro usuario`)
+    return next(createError(401, 'Not authorized'))
+  }
+
+  await Product.deleteOne({ _id: productId })
+
+  res.redirect('/')
 }
 
-// Actualiza un producto
-export async function updateProduct(req, res, next) {
-    const { name, price, image, tags } = req.body;
-    const product = await Product.findById(req.params.id);
-    
-    if (!product) {
-        return next(createError(404, 'Producto no encontrado'));
-    }
+export async function editProduct(req, res, next) {
+  const userId = req.session.userId
+  const productId = req.params.productId
+  const { name, price, image, tags } = req.body
 
-    if (product.owner.toString() !== req.user._id.toString()) {
-        return next(createError(403, 'No tienes permiso para editar este producto'));
-    }
+  const product = await Product.findOne({ _id: productId })
 
-    product.name = name || product.name;
-    product.price = price || product.price;
-    product.image = image || product.image;
-    product.tags = tags || product.tags;
+  if (!product) {
+    console.warn(`WARNING - el usuario ${userId} está intentando editar un producto inexistente`)
+    return next(createError(404, 'Not found'))
+  }
 
-    try {
-        await product.save();
-        res.json(product);
-    } catch (error) {
-        next(createError(400, 'Error al actualizar el producto'));
-    }
+  if (product.owner.toString() !== userId) {
+    console.warn(`WARNING - el usuario ${userId} está intentando editar un producto de otro usuario`)
+    return next(createError(401, 'Not authorized'))
+  }
+
+  product.name = name
+  product.price = price
+  product.image = image
+  product.tags = tags
+
+  await product.save()
+
+  res.redirect('/')
 }
