@@ -3,8 +3,8 @@ import Product from '../models/Product.js';
 
 const router = express.Router();
 
-// MOSTRAR PRODUCTOS (GET /)
-router.get('/', async (req, res) => {
+// MOSTRAR PRODUCTOS (GET /api/products)
+router.get('/api/products', async (req, res) => {
     const { tag, name, price, skip = 0, limit = 10, sort = 'name' } = req.query;
 
     const filter = {};
@@ -24,6 +24,16 @@ router.get('/', async (req, res) => {
         res.json(products);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching products' });
+    }
+});
+
+// RUTA PRINCIPAL (GET /) que renderiza la vista 'home'
+router.get('/', async (req, res) => {
+    try {
+        const products = await Product.find(); // Obtener los productos desde la base de datos
+        res.render('home', { products }); // Pasar los productos a la vista 'home'
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
 

@@ -1,23 +1,29 @@
 import assert from 'node:assert'
 import { query, validationResult } from 'express-validator'
-import Agent from '../models/Agent.js'
+import Product from '../models/Product.js'
 
 // GET /
 export async function index(req, res, next) {
-
     const now = new Date()
     const userId = req.session.userId
 
-    res.locals.nombre = '<script>alert("inyeccion de codigo")</script>'
-    res.locals.esPar = (now.getSeconds() % 2) === 0
-    res.locals.segundoActual = now.getSeconds()
+    const appName = 'Nodepop';
+
+    res.locals.nombre = '<script>alert("inyeccion de codigo")</script>';
+    res.locals.esPar = (now.getSeconds() % 2) === 0;
+    res.locals.segundoActual = now.getSeconds();
+
+    let products = [];  // Inicializa la variable products
 
     if (userId) {
-        res.locals.agents = await Agent.find({ owner: userId })
+        // Si hay un usuario logueado, obtiene sus productos
+        products = await Product.find({ owner: userId });
     }
 
-    res.render('home')
+    // Pasa products y appName a la vista
+    res.render('home', { appName, products, user: res.locals.user });
 }
+
 
 // GET /param_in_route/44
 export function paranInRouteExample(req, res, next) {
@@ -64,11 +70,11 @@ export const validateQueryExampleValidations = [
         .custom(value => value === '42')
         .withMessage('must be 42')
 ]
+
 export function validateQueryExample(req, res, next) {
     validationResult(req).throw()
     const param1 = req.query.param1
     const param2 = req.query.param2
-
 
     res.send(`Validated ${param1} ${param2}`)
 }

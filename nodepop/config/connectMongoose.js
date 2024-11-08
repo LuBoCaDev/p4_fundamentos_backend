@@ -1,9 +1,13 @@
-import mongoose from 'mongoose'
+// En config/connectMongoose.js
+import mongoose from 'mongoose';
 
-mongoose.connection.on( 'error', err => {
-    console.log('Error de conexión', err)
-})
+const connectMongoose = async () => {
+    try {
+        await mongoose.connect('mongodb://localhost:27017/nodepop');
+        console.log('Database connected successfully');
+    } catch (error) {
+        console.error('Database connection error:', error);
+    }
+};
 
-export default function connectMoongose() {
-    return mongoose.connect('mongodb://127.0.0.1:27017/nodepop')
-}
+export default connectMongoose;

@@ -1,7 +1,8 @@
-import session from 'express-session'
-import MongoStore from 'connect-mongo'
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import User from '../models/User.js';
 
-const INACTIVITY_EXPIRATION_2_DAYS = 1000 * 60 * 60 * 24 * 2
+const INACTIVITY_EXPIRATION_2_DAYS = 1000 * 60 * 60 * 24 * 2;
 
 export const middleware = session({
     name: 'nodepop-session',
@@ -10,19 +11,31 @@ export const middleware = session({
     resave: false,
     cookie: { maxAge: INACTIVITY_EXPIRATION_2_DAYS },
     store: MongoStore.create({
-        mongoUrl: 'mongodb://127.0.0.1:27017/cursonode'
-    })
-})
+        mongoUrl: 'mongodb://127.0.0.1:27017/nodepop',  // Reemplaza con tu URL si es necesario
+    }),
+});
 
 export function useSessionInViews(req, res, next) {
-    res.locals.session = req.session
-    next()
+    if (req.session.userId) {
+        // Cargar el usuario completo desde la base de datos
+        User.findById(req.session.userId)
+            .then(user => {
+                res.locals.user = user;  // Pasa el usuario completo a la vista
+                next();
+            })
+            .catch(next); // Maneja errores si ocurre uno al obtener el usuario
+    } else {
+        res.locals.user = null;  // Si no hay usuario en la sesión
+        next();
+    }
 }
+
+
 
 export function isLoggedIn(req, res, next) {
     if (!req.session.userId) {
-        res.redirect('/login')
-        return
+        res.redirect('/login');
+        return;
     }
-    next()
+    next();
 }

@@ -1,6 +1,12 @@
 import createError from 'http-errors';
 import Product from '../models/Product.js';
 
+// Renderiza la vista para crear un nuevo producto
+export function index(req, res, next) {
+  res.render('new-product'); // Renderiza la vista 'new-product' que contiene el formulario
+}
+
+// Obtiene todos los productos
 export async function getAllProducts(req, res, next) {
     try {
         const products = await Product.find();
@@ -10,11 +16,12 @@ export async function getAllProducts(req, res, next) {
     }
 }
 
+// Crea un nuevo producto
 export async function postNew(req, res, next) {
     const { name, price, image, tags } = req.body;
     const product = new Product({
         name,
-        owner: req.user._id,
+        owner: req.user._id, // Asegúrate de tener acceso al usuario desde req.user
         price,
         image,
         tags
@@ -22,12 +29,13 @@ export async function postNew(req, res, next) {
 
     try {
         await product.save();
-        res.status(201).json(product);
+        res.status(201).json(product); // Responde con el producto creado
     } catch (error) {
         next(createError(400, 'Error al crear el producto'));
     }
 }
 
+// Elimina un producto
 export async function deleteProduct(req, res, next) {
     const product = await Product.findById(req.params.id);
     
@@ -40,9 +48,10 @@ export async function deleteProduct(req, res, next) {
     }
 
     await product.remove();
-    res.status(204).end();
+    res.status(204).end(); // Responde con un 204 (sin contenido) tras la eliminación
 }
 
+// Actualiza un producto
 export async function updateProduct(req, res, next) {
     const { name, price, image, tags } = req.body;
     const product = await Product.findById(req.params.id);

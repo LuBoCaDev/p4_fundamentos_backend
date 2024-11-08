@@ -5,17 +5,25 @@
   "type": "module",
   "scripts": {
     "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www",
     "initDB": "node initDB.js"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
+    "express-validator": "^7.2.0",
     "http-errors": "~1.6.3",
-    "mongoose": "^8.7.3",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.8.0",
     "morgan": "~1.9.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.7"
   }
 }
