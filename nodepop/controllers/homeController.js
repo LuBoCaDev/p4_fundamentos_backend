@@ -1,56 +1,70 @@
-import assert from 'node:assert'
-import { query, validationResult } from 'express-validator'
-import Product from '../models/Product.js'
+import { query, validationResult } from 'express-validator';
+import Product from '../models/Product.js'; 
 
-// GET /
 export async function index(req, res, next) {
+  try {
+    const now = new Date();
+    const userId = req.session.userId;
 
-  const now = new Date()
-  const userId = req.session.userId
+    // Parámetros de búsqueda y paginación
+    const { name, priceMin, priceMax, tag, skip = 0, limit = 10, sort = 'name' } = req.query;
+    const searchParams = { name, priceMin, priceMax, tag };
 
-  res.locals.nombre = '<script>alert("inyeccion de codigo")</script>'
-  res.locals.esPar = (now.getSeconds() % 2) === 0
-  res.locals.segundoActual = now.getSeconds()
+    const filter = { owner: userId };
 
-  if (userId) {
-    res.locals.products = await Product.find({ owner: userId })
+    if (tag) filter.tags = tag;
+    if (priceMin && priceMax) filter.price = { $gte: priceMin, $lte: priceMax };
+    if (name) filter.name = new RegExp(`^${name}`, 'i');
+
+    // Obtener productos con los filtros aplicados
+    const products = await Product.find(filter)
+      .skip(Number(skip))
+      .limit(Number(limit))
+      .sort(sort || 'name');
+
+    // Calcular la paginación
+    const totalProducts = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(totalProducts / limit);
+    const currentPage = Math.floor(skip / limit) + 1;
+
+    // Renderizar la vista con los productos, parámetros de búsqueda y paginación
+    res.render('home', {
+      products,
+      searchParams,
+      currentPage,
+      totalPages,
+      limit,
+      skip: Number(skip),
+    });
+    
+  } catch (err) {
+    next(err);
   }
-
-  res.render('home')
 }
 
-// GET /param_in_route/44
+// Otras funciones que ya tienes (ejemplo con parámetros en la URL)
 export function paranInRouteExample(req, res, next) {
-  const num = req.params.num
-
-  res.send('Received ' + num)
+  const num = req.params.num;
+  res.send('Received ' + num);
 }
 
-// GET /param_in_route_multiple/camiseta/size/37/color/red
 export function paranInRouteMultipleExample(req, res, next) {
-  const product = req.params.product
-  const size = req.params.size
-  const color = req.params.color
-
-  res.send(`Received ${product} size ${size} color ${color}`)
+  const product = req.params.product;
+  const size = req.params.size;
+  const color = req.params.color;
+  res.send(`Received ${product} size ${size} color ${color}`);
 }
 
-// GET /param_in_query?size=S&color=blue
 export function paramInQuery(req, res, next) {
-  const size = req.query.size
-  const color = req.query.color
-
-  res.send(`Received size ${size} color ${color}`)
+  const size = req.query.size;
+  const color = req.query.color;
+  res.send(`Received size ${size} color ${color}`);
 }
 
-// POST /create-example
 export function createExample(req, res, next) {
-  const item = req.body.item
-
-  // validation
-  assert(item, 'item is required')
-
-  res.send('Received ' + item)
+  const item = req.body.item;
+  assert(item, 'item is required');
+  res.send('Received ' + item);
 }
 
 export const validateQueryExampleValidations = [
@@ -63,12 +77,11 @@ export const validateQueryExampleValidations = [
   query('param3')
     .custom(value => value === '42')
     .withMessage('must be 42')
-]
+];
 
 export function validateQueryExample(req, res, next) {
-  validationResult(req).throw()
-  const param1 = req.query.param1
-  const param2 = req.query.param2
-
-  res.send(`Validated ${param1} ${param2}`)
+  validationResult(req).throw();
+  const param1 = req.query.param1;
+  const param2 = req.query.param2;
+  res.send(`Validated ${param1} ${param2}`);
 }

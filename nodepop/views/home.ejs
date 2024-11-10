@@ -1,32 +1,64 @@
 <%- include('header.ejs') %>
 
-<div class="container">
+<h1>NODEPOP</h1>
 
-  <p>User ID: <%= session.userId %></p>
+<% if (session.userId) { %>  <!-- Verifica si el usuario está logueado -->
 
-  <p>Ejemplo de inyección de código <%= nombre %></p>
+  <!-- Filtros -->
+  <form method="get" action="/">
+    <label for="name">Nombre del producto:</label>
+    <input type="text" name="name" value="<%= searchParams.name %>">
+    
+    <label for="priceMin">Precio mínimo:</label>
+    <input type="number" name="priceMin" value="<%= searchParams.priceMin %>">
+    
+    <label for="priceMax">Precio máximo:</label>
+    <input type="number" name="priceMax" value="<%= searchParams.priceMax %>">
+    
+    <label for="tag">Tag:</label>
+    <select name="tag">
+      <option value="">Selecciona un tag</option>
+      <option value="work" <%= searchParams.tag === 'work' ? 'selected' : '' %>>Work</option>
+      <option value="lifestyle" <%= searchParams.tag === 'lifestyle' ? 'selected' : '' %>>Lifestyle</option>
+      <option value="motor" <%= searchParams.tag === 'motor' ? 'selected' : '' %>>Motor</option>
+      <option value="mobile" <%= searchParams.tag === 'mobile' ? 'selected' : '' %>>Mobile</option>
+    </select>
+    
+    <button type="submit">Filtrar</button>
+  </form>
 
-  <h2>Condicionales</h2>
-  <p>El segundo actual es: <%= segundoActual %></p>
-  <% if (esPar) { %>
-    <p>El segundo actual es par.</p>
-  <% } else { %>
-    <p>El segundo actual es impar.</p>
-  <% } %>
+  <!-- Productos -->
+  <div>
+    <% if (products.length > 0) { %>
+      <ul>
+        <% products.forEach(product => { %>
+          <li>
+            <h2><%= product.name %></h2>
+            <p>Precio: <%= product.price %> €</p>
+            <p>Tag: <%= product.tags.join(', ') %></p>
+            <p>Propietario: <%= product.owner %></p>
+            <img src="<%= product.image %>" alt="<%= product.name %>" width="200">
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p>No se han encontrado productos.</p>
+    <% } %>
+  </div>
 
-  <% // contenido para usuarios NO logados %>
-  <% if (!session.userId) { %>
-    <p>Para ver el contenido debes hacer <a href="/login">login</a></p>
-  <% } %>
+  <!-- Paginación -->
+  <div>
+    <% if (currentPage > 1) { %>
+      <a href="?skip=<%= (currentPage - 2) * limit %>&limit=<%= limit %>&name=<%= searchParams.name %>&priceMin=<%= searchParams.priceMin %>&priceMax=<%= searchParams.priceMax %>&tag=<%= searchParams.tag %>">Anterior</a>
+    <% } %>
+    
+    <% if (currentPage < totalPages) { %>
+      <a href="?skip=<%= currentPage * limit %>&limit=<%= limit %>&name=<%= searchParams.name %>&priceMin=<%= searchParams.priceMin %>&priceMax=<%= searchParams.priceMax %>&tag=<%= searchParams.tag %>">Siguiente</a>
+    <% } %>
+  </div>
 
-  <% // contenido para usuarios logados %>
-  <% if (session.userId) { %>
-    <h2>Bucles</h2>
-    <% products.forEach(product => { %>
-      <p><%= product.name %> tiene <%= product.age %> años.  <a href="/products/delete/<%= product.id %>"><i class="bi bi-trash"></i></a></p>
-    <% }) %>
-  <% } %>
-
-</div>
+<% } else { %> <!-- Si el usuario no está logueado, muestra el siguiente mensaje -->
+  <p>Por favor, <a href="/login">inicia sesión</a> para ver los productos.</p>
+<% } %>
 
 <%- include('footer.ejs') %>
