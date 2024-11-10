@@ -42,7 +42,7 @@ export async function index(req, res, next) {
   }
 }
 
-// Otras funciones que ya tienes (ejemplo con parámetros en la URL)
+
 export function paranInRouteExample(req, res, next) {
   const num = req.params.num;
   res.send('Received ' + num);

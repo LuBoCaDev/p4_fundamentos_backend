@@ -2,9 +2,9 @@
 
 <h1>NODEPOP</h1>
 
-<% if (session.userId) { %>  <!-- Verifica si el usuario está logueado -->
+<% if (session.userId) { %>  
 
-  <!-- Filtros -->
+  
   <form method="get" action="/">
     <label for="name">Nombre del producto:</label>
     <input type="text" name="name" value="<%= searchParams.name %>">
@@ -27,7 +27,7 @@
     <button type="submit">Filtrar</button>
   </form>
 
-  <!-- Productos -->
+
   <div>
     <% if (products.length > 0) { %>
       <ul>
@@ -46,7 +46,7 @@
     <% } %>
   </div>
 
-  <!-- Paginación -->
+
   <div>
     <% if (currentPage > 1) { %>
       <a href="?skip=<%= (currentPage - 2) * limit %>&limit=<%= limit %>&name=<%= searchParams.name %>&priceMin=<%= searchParams.priceMin %>&priceMax=<%= searchParams.priceMax %>&tag=<%= searchParams.tag %>">Anterior</a>
@@ -57,7 +57,7 @@
     <% } %>
   </div>
 
-<% } else { %> <!-- Si el usuario no está logueado, muestra el siguiente mensaje -->
+<% } else { %>
   <p>Por favor, <a href="/login">inicia sesión</a> para ver los productos.</p>
 <% } %>
 
